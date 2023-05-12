@@ -137,7 +137,8 @@ def audit_files_new():
             # concatenate the two dataframes
             new_df = pd.concat([consignor_item_id, receptacle_id], axis=1)
 
-            # write the new dataframe to a new Excel file with the trimmed substring as the name, in the "complete_audit_file" subdirectory
+            # write the new dataframe to a new Excel file with the trimmed substring as the name,
+            # in the "complete_audit_file" subdirectory
             new_file_name = new_file_name + "_new.xls"
             new_file_path = os.path.join(complete_audit_file_path, new_file_name)
 
