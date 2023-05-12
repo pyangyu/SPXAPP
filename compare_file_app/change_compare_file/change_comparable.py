@@ -1,10 +1,13 @@
-import pandas as pd
-import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import re
 import xlwt
+import os
+import pandas as pd
+import openpyxl
+from openpyxl.utils.dataframe import dataframe_to_rows
+from tkinter import messagebox
 
 pattern1 = r"\d{3}-\d{8}"
 pattern2 = r"\d{11}"
@@ -23,6 +26,8 @@ def extract_file_name(file_name):
     return matches[0]
 
 
+
+
 def audit_files_new():
     # get the selected folder path
     folder_path = folder_path_var.get()
@@ -33,8 +38,10 @@ def audit_files_new():
 
     # get a list of all Excel files in the folder
     excel_files = [f for f in os.listdir(folder_path) if f.endswith(".xls") or f.endswith(".xlsx")]
+    final_string = ""
     for excel_file in excel_files:
         new_file_name = extract_file_name(excel_file)
+        final_string += f"AWB is: {new_file_name} \n"
 
         # read the Excel file into a Pandas dataframe
         df = pd.read_excel(os.path.join(folder_path, excel_file))
@@ -44,39 +51,41 @@ def audit_files_new():
             # filter the rows containing "SPX"
             filtered_df = df[df['consignor_item_id'].str.contains('SPX')]
             filtered_df = filtered_df.drop_duplicates(subset="consignor_item_id")
-            print(type(filtered_df))
+            if "receptacle_id" in df.columns:
+                receptacle_id_unique = df['receptacle_id']
+                receptacle_id_unique = receptacle_id_unique.drop_duplicates()
+                final_string += f"There are {len(receptacle_id_unique)} rows in the DataFrame.\n"
             total_rows = len(filtered_df)
-            num_rows_containing_ah = filtered_df["consignor_item_id"].str.contains('AH').sum()
-            num_rows_containing_ge = filtered_df["consignor_item_id"].str.contains('GE').sum()
-            num_rows_containing_ud = filtered_df["consignor_item_id"].str.contains('UD').sum()
-            print(f"There are {total_rows} rows in the DataFrame.")
-            print(f"There are {num_rows_containing_ah} rows in the DataFrame.")
-            print(f"There are {num_rows_containing_ge} rows in the DataFrame.")
-            print(f"There are {num_rows_containing_ud} rows in the DataFrame.")
+            num_rows_containing_ah = filtered_df["consignor_item_id"].str.contains('AH', case=False).sum()
+            num_rows_containing_ge = filtered_df["consignor_item_id"].str.contains('GE', case=False).sum()
+            num_rows_containing_ud = filtered_df["consignor_item_id"].str.contains('UD', case=False).sum()
+            final_string += f"There are {total_rows} rows in the DataFrame.\n"
+            final_string += f"There are {num_rows_containing_ah} rows containing 'AH' in the DataFrame.\n"
+            final_string += f"There are {num_rows_containing_ge} rows containing 'GE' in the DataFrame.\n"
+            final_string += f"There are {num_rows_containing_ud} rows containing 'UD' in the DataFrame.\n"
 
             # write the new dataframe to a new Excel file with the trimmed substring as the name,
             # in the "complete_audit_file" subdirectory
-            new_file_name = new_file_name + "_extracted.xls"
+            new_file_name = new_file_name + "_T86.xlsx"
             new_file_path = os.path.join(complete_filtered_files, new_file_name)
 
-            # create a new workbook and worksheet using xlwt
-            workbook = xlwt.Workbook(encoding='utf-8')
-            worksheet = workbook.add_sheet('Sheet1')
+            # create a new workbook and worksheet using openpyxl
+            workbook = openpyxl.Workbook()
+            worksheet = workbook.active
 
             # write the dataframe to the worksheet
-            for row_idx, row_data in filtered_df.iterrows():
-                for col_idx, col_data in enumerate(row_data):
-                    worksheet.write(row_idx + 1, col_idx, col_data)
+            for row in dataframe_to_rows(filtered_df, index=False, header=True):
+                worksheet.append(row)
 
             # save the workbook to the new Excel file
             workbook.save(new_file_path)
         else:
             # skip this file if the "Tracking Number" column does not exist
-            print(f"Skipping because of some bugs")
+            print(f"Skipping {excel_file} because the 'consignor_item_id' column does not exist.")
 
     # display a message box to indicate the operation is complete
-    messagebox.showinfo("T86 Filter Files", "The files have been successfully filtered.")
-
+    final_string += '\n' + "-"*50
+    messagebox.showinfo("T86 Filter Files", final_string)
 
 def browse_folder():
     folder_path = filedialog.askdirectory()
