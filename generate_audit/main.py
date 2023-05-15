@@ -188,32 +188,59 @@ if __name__ == "__main__":
     # adjust the alpha channel to 0.3
     image.putalpha(int(255 * 0.2))
     photo_image = ImageTk.PhotoImage(image)
-    # set the canvas background color to white
-    canvas.configure(bg='#DAE6E6')
     # create a rectangle with the same size as the canvas to serve as the background
     background = canvas.create_rectangle(0, 0, 500, 500, fill="#DAE6E6", outline="#DAE6E6")
     # create an image item on the canvas with the icon.webp image
-    canvas.create_image(0, 0, image=photo_image, anchor="nw")
+    image_item = canvas.create_image(0, 0, image=photo_image, anchor="nw")
+    # set the canvas background color to #DAE6E6
+    canvas.configure(bg='#DAE6E6')
     # pack the canvas widget to fill the window
     canvas.pack(fill="both", expand=True)
 
+
+    # # bind the canvas to the resize event of the root window
+    # def on_resize(event):
+    #     # get the new size of the root window
+    #     w = event.width
+    #     h = event.height
+    #     # reconfigure the canvas size and background rectangle size to fill the new window size
+    #     canvas.configure(width=w, height=h)
+    #     canvas.coords(background, 0, 0, w, h)
+    #     # reconfigure the image size to fill the new window size while keeping the aspect ratio
+    #     aspect_ratio = image.width / image.height
+    #     if w / h > aspect_ratio:
+    #         new_width = int(h * aspect_ratio)
+    #         new_height = h
+    #     else:
+    #         new_width = w
+    #         new_height = int(w / aspect_ratio)
+    #     canvas.itemconfig(image_item, image=ImageTk.PhotoImage(image.resize((new_width, new_height))))
+    #
+    #
+    # canvas.bind("<Configure>", on_resize)
+
     # add a label and entry for the folder path
     folder_path_var = tk.StringVar()
-    folder_path_label = tk.Label(root, text="Folder Path:")
+    folder_path_label = tk.Label(root, text="Folder Path:", font=("Helvetica", 20, "bold"), fg="darkblue", bg="#DAE6E6")
     folder_path_label.pack(side=tk.TOP)
     folder_path_label.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
-    folder_path_entry = tk.Entry(root, textvariable=folder_path_var, width=50)
-    folder_path_entry.pack(side=tk.TOP)
+    folder_path_entry = tk.Entry(root, textvariable=folder_path_var, width=40, font=("Helvetica", 14))
+    folder_path_entry.pack(pady=10, side=tk.TOP)
     folder_path_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
 
-    browse_button = tk.Button(root, text="Browse", command=browse_folder, font=("Helvetica", 12), bg="lightblue",
-                              bd=0.8,
-                              relief=tk.RAISED, activebackground="#FF9999", activeforeground="white")
+    # browse_button = tk.Button(root, text="Browse", command=browse_folder, font=("Helvetica", 12), bg="lightblue",
+    #                           bd=0.8,
+    #                           relief=tk.RAISED, activebackground="#FF9999", activeforeground="white")
+    browse_button = tk.Button(root, text="Browse", command=browse_folder, font=("Helvetica", 12), bg="orange",
+                              bd=2, relief=tk.RAISED, activebackground="#FF9999", activeforeground="white",
+                              padx=10, pady=5)
     browse_button.pack(pady=10, side=tk.TOP)
     browse_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
 
     # add a button to perform the combination
-    combine_button = tk.Button(root, text="Generate Audit Files", command=audit_files_new)
+    combine_button = tk.Button(root, text="Generate Audit Files", command=audit_files_new, font=("Helvetica", 12), bg="lightblue",
+                              bd=2, relief=tk.RAISED, activebackground="#FF9999", activeforeground="white",
+                              padx=10, pady=5)
     combine_button.pack(pady=5, side=tk.BOTTOM)
     combine_button.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
 

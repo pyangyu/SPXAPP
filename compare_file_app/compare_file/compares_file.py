@@ -51,6 +51,12 @@ def compare_files():
     for excel_file in excel_files_T86:
         # read the Excel file into a Pandas dataframe
         df = pd.read_excel(os.path.join(folder_path_T86, excel_file))
+        # if "consignor_item_id" in df.columns:
+        #     df = df[df['consignor_item_id'].str.contains('SPX')]
+        # elif "服务商单号" in df.columns:
+        #     df = df[df['服务商单号'].str.contains('SPX')]
+        # else:
+        #     print("error")
         new_file_name = extract_file_name(excel_file)
         excel_files_T86_rename.append(new_file_name)
         if new_file_name == "":
@@ -71,10 +77,12 @@ def compare_files():
 
         # save the workbook to the new Excel file
         workbook.save(new_file_path)
+    final_string_presenting = ""
 
     for excel_file in excel_files_scanned:
         # read the Excel file into a Pandas dataframe
-        df = pd.read_excel(os.path.join(folder_path_scanned, excel_file))
+        df = pd.read_excel(os.path.join(folder_path_scanned, excel_file), header=None)
+        df.columns = ['scanned result']
         new_file_name = extract_file_name(excel_file)
         excel_files_scanned_rename.append(new_file_name)
         if new_file_name == "":
@@ -97,25 +105,32 @@ def compare_files():
         # save the workbook to the new Excel file
         workbook.save(new_file_path)
 
+    final_string_presenting += "The Revd A/R values would be: \n"
+    final_string_presenting += "-" * 50 + '\n'
     for excel_file_scanned in excel_files_scanned_rename:
         if excel_file_scanned in excel_files_T86_rename:
             df_T86 = pd.read_excel(os.path.join(complete_files_T86, excel_file_scanned + "_T86.xlsx"))
             df_scanned = pd.read_excel(os.path.join(complete_files_scanned, excel_file_scanned + "_scanned.xlsx"))
-            if "服务商单号" in df_T86.columns:
-                df_T86.rename(columns={'服务商单号':"consignor_item_id"})
-            consignor_item_id_T86 = df_T86["consignor_item_id"]
-            consignor_item_id_T86.drop_duplicates()
+            if "箱号" in df_T86.columns.tolist():
+                df_T86 = df_T86.rename(columns={"箱号": "receptacle_id"})
+                print(df_T86.columns)
+            consignor_item_id_T86 = df_T86["receptacle_id"]
+            consignor_item_id_T86 = consignor_item_id_T86.drop_duplicates()
+            consignor_item_id_T86 = consignor_item_id_T86.tolist()
+            consignor_item_id_T86 = list(set(consignor_item_id_T86))
             scanned_finished = 0
             consignor_item_id_scan = df_scanned.iloc[:, 0]
-            consignor_item_id_scan.drop_duplicates()
+            consignor_item_id_scan = consignor_item_id_scan.drop_duplicates()
             consignor_item_id_scan = consignor_item_id_scan.tolist()
-            consignor_item_id_T86 = consignor_item_id_T86.tolist()
+            consignor_item_id_scan = list(set(consignor_item_id_scan))
             for element in consignor_item_id_scan:
                 if element in consignor_item_id_T86:
                     scanned_finished += 1
-            print(excel_file_scanned + '\n')
-            print(f"{scanned_finished} / {len(consignor_item_id_T86)} \n")
+            final_string_presenting += excel_file_scanned + '\n'
+            final_string_presenting += f"{scanned_finished} / {len(consignor_item_id_T86)} \n"
+            final_string_presenting += "-" * 50 + '\n'
 
+    messagebox.showinfo("Comparison", final_string_presenting)
 
 
 def browse_folder_T86():
