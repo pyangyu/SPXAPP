@@ -52,17 +52,18 @@ def audit_files_new():
             filtered_df = df[df['consignor_item_id'].str.contains('SPX')]
             filtered_df = filtered_df.drop_duplicates(subset="consignor_item_id")
             if "receptacle_id" in df.columns:
-                receptacle_id_unique = df['receptacle_id']
+                receptacle_id_unique = filtered_df['receptacle_id']
                 receptacle_id_unique = receptacle_id_unique.drop_duplicates()
-                final_string += f"There are {len(receptacle_id_unique)} rows in the DataFrame.\n"
+                final_string += f"There are {len(receptacle_id_unique)} boxes.\n"
             total_rows = len(filtered_df)
             num_rows_containing_ah = filtered_df["consignor_item_id"].str.contains('AH', case=False).sum()
             num_rows_containing_ge = filtered_df["consignor_item_id"].str.contains('GE', case=False).sum()
             num_rows_containing_ud = filtered_df["consignor_item_id"].str.contains('UD', case=False).sum()
-            final_string += f"There are {total_rows} rows in the DataFrame.\n"
+            final_string += f"There are {total_rows} total parcels.\n"
             final_string += f"There are {num_rows_containing_ah} rows containing 'AH' in the DataFrame.\n"
             final_string += f"There are {num_rows_containing_ge} rows containing 'GE' in the DataFrame.\n"
             final_string += f"There are {num_rows_containing_ud} rows containing 'UD' in the DataFrame.\n"
+            final_string += "-" * 50 + '\n'
 
             # write the new dataframe to a new Excel file with the trimmed substring as the name,
             # in the "complete_audit_file" subdirectory
@@ -84,7 +85,6 @@ def audit_files_new():
             print(f"Skipping {excel_file} because the 'consignor_item_id' column does not exist.")
 
     # display a message box to indicate the operation is complete
-    final_string += '\n' + "-"*50
     messagebox.showinfo("T86 Filter Files", final_string)
 
 def browse_folder():
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # adjust the alpha channel to 0.3
     image.putalpha(int(255 * 0.2))
     photo_image = ImageTk.PhotoImage(image)
-    # set the canvas background color to white
+    # set the canvas background color to #DAE6E6
     canvas.configure(bg='#DAE6E6')
     # create a rectangle with the same size as the canvas to serve as the background
     background = canvas.create_rectangle(0, 0, 500, 500, fill="#DAE6E6", outline="#DAE6E6")
@@ -120,21 +120,23 @@ if __name__ == "__main__":
 
     # add a label and entry for the folder path
     folder_path_var = tk.StringVar()
-    folder_path_label = tk.Label(root, text="Folder Path:")
+    folder_path_label = tk.Label(root, text="Folder Path:", font=("Helvetica", 20, "bold"), fg="darkblue", bg="#DAE6E6")
     folder_path_label.pack(side=tk.TOP)
     folder_path_label.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
-    folder_path_entry = tk.Entry(root, textvariable=folder_path_var, width=50)
+    folder_path_entry = tk.Entry(root, textvariable=folder_path_var, width=40, font=("Helvetica", 14))
     folder_path_entry.pack(side=tk.TOP)
     folder_path_entry.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
 
-    browse_button = tk.Button(root, text="Browse", command=browse_folder, font=("Helvetica", 12), bg="lightblue",
-                              bd=0.8,
-                              relief=tk.RAISED, activebackground="#FF9999", activeforeground="white")
+    browse_button = tk.Button(root, text="Browse", command=browse_folder, font=("Helvetica", 12), bg="orange",
+                              bd=2, relief=tk.RAISED, activebackground="#FF9999", activeforeground="white",
+                              padx=10, pady=5)
     browse_button.pack(pady=10, side=tk.TOP)
     browse_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
 
     # add a button to perform the combination
-    combine_button = tk.Button(root, text="Filter T86 Files", command=audit_files_new)
+    combine_button = tk.Button(root, text="Filter T86 Files", command=audit_files_new, font=("Helvetica", 12), bg="lightblue",
+                              bd=2, relief=tk.RAISED, activebackground="#FF9999", activeforeground="white",
+                              padx=10, pady=5)
     combine_button.pack(pady=5, side=tk.BOTTOM)
     combine_button.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
 

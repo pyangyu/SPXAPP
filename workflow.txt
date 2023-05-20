@@ -1,0 +1,2 @@
+1. prealert -> data comparison -> update prealert
+

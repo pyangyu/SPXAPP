@@ -31,3 +31,54 @@ for bb in b:
 for aa in a:
     if aa not in b:
         print("scanned 里没 T86 有\n" + str(aa))
+
+
+
+
+
+import openpyxl
+from openpyxl.utils import get_column_letter
+
+# Load the Excel file
+workbook = openpyxl.load_workbook('your_file.xlsx')
+
+# Select the desired sheet
+sheet = workbook['Sheet1']  # Replace 'Sheet1' with the actual sheet name
+
+# Define the desired column headers to be styled in red
+red_columns = ["Tracking Number", "MAWB", "Courier code", "Action", "DSP"]
+
+# Iterate over the columns and update the header style
+for col_num, col_letter in enumerate(sheet.iter_cols(min_row=1, max_row=1), 1):
+    column_header = sheet[get_column_letter(col_num) + '1'].value
+    if column_header in red_columns:
+        # Set the font color to red
+        col_letter[0].font = openpyxl.styles.Font(color="FF0000")
+
+# Save the modified workbook
+workbook.save('your_modified_file.xlsx')
+
+
+'''
+sheet.iter_cols:
+
+    Let's break down the sheet.iter_cols(min_row=1, max_row=1), 1 expression:
+    
+    sheet.iter_cols(min_row=1, max_row=1): This part iterates over the columns in the worksheet defined by the sheet variable. It specifies a range of rows to iterate over, in this case, from min_row=1 to max_row=1. Since we are only interested in the first row (which contains the column headers), we set both min_row and max_row to 1.
+    
+    , 1: This part represents the optional col_offset parameter for iter_cols(). It specifies the column offset, indicating the starting column index. In this case, 1 is passed as the col_offset, which means the iteration starts from the first column.
+    
+    Combining these parts together, sheet.iter_cols(min_row=1, max_row=1), 1 iterates over the columns in the first row of the worksheet, starting from the first column.
+    
+    By using this iteration, we can access each column object in the first row and check its corresponding column header value.
+    
+
+get_column_letter(col_num) + '1':
+
+    get_column_letter(col_num) is a function provided by the openpyxl library that converts a column number to its corresponding letter representation in Excel. For example, get_column_letter(1) returns 'A', get_column_letter(2) returns 'B', and so on.
+    
+    In the context of get_column_letter(col_num) + '1', it is used to generate a cell reference for a specific column and row in Excel. The col_num represents the column number, and get_column_letter(col_num) converts it to the corresponding letter. By concatenating the letter with the number 1, we get the cell reference for the first row of the specified column. For example, if col_num is 1, the expression get_column_letter(1) + '1' evaluates to 'A1', representing the cell in the first row and first column of an Excel worksheet.
+
+
+
+'''

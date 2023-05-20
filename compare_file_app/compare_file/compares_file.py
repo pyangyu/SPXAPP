@@ -82,6 +82,7 @@ def compare_files():
     for excel_file in excel_files_scanned:
         # read the Excel file into a Pandas dataframe
         df = pd.read_excel(os.path.join(folder_path_scanned, excel_file), header=None)
+        df = df.iloc[:, 0]
         df.columns = ['scanned result']
         new_file_name = extract_file_name(excel_file)
         excel_files_scanned_rename.append(new_file_name)
@@ -114,15 +115,20 @@ def compare_files():
             if "箱号" in df_T86.columns.tolist():
                 df_T86 = df_T86.rename(columns={"箱号": "receptacle_id"})
                 print(df_T86.columns)
-            consignor_item_id_T86 = df_T86["receptacle_id"]
-            consignor_item_id_T86 = consignor_item_id_T86.drop_duplicates()
-            consignor_item_id_T86 = consignor_item_id_T86.tolist()
-            consignor_item_id_T86 = list(set(consignor_item_id_T86))
-            scanned_finished = 0
             consignor_item_id_scan = df_scanned.iloc[:, 0]
             consignor_item_id_scan = consignor_item_id_scan.drop_duplicates()
             consignor_item_id_scan = consignor_item_id_scan.tolist()
             consignor_item_id_scan = list(set(consignor_item_id_scan))
+            consignor_item_id_T86 = df_T86["receptacle_id"]
+            consignor_item_id_T86 = consignor_item_id_T86.drop_duplicates()
+            consignor_item_id_T86 = consignor_item_id_T86.tolist()
+            consignor_item_id_T86 = list(set(consignor_item_id_T86))
+            # the receptacle id label is broken, use the package inside instead
+            for consignor_item_id_scan_item in consignor_item_id_scan:
+                if "SPX" in consignor_item_id_scan_item:
+                    if df_T86['consignor_item_id'].str.contains(consignor_item_id_scan_item).any():
+                        continue
+            scanned_finished = 0
             for element in consignor_item_id_scan:
                 if element in consignor_item_id_T86:
                     scanned_finished += 1

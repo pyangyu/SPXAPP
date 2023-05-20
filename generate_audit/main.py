@@ -188,12 +188,12 @@ if __name__ == "__main__":
     # adjust the alpha channel to 0.3
     image.putalpha(int(255 * 0.2))
     photo_image = ImageTk.PhotoImage(image)
+    # set the canvas background color to #DAE6E6
+    canvas.configure(bg='#DAE6E6')
     # create a rectangle with the same size as the canvas to serve as the background
     background = canvas.create_rectangle(0, 0, 500, 500, fill="#DAE6E6", outline="#DAE6E6")
     # create an image item on the canvas with the icon.webp image
     image_item = canvas.create_image(0, 0, image=photo_image, anchor="nw")
-    # set the canvas background color to #DAE6E6
-    canvas.configure(bg='#DAE6E6')
     # pack the canvas widget to fill the window
     canvas.pack(fill="both", expand=True)
 
