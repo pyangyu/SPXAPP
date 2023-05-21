@@ -105,10 +105,12 @@ def combine_files_new():
     folder_path = folder_path_var.get()
 
     # get a list of all Excel files in the folder
-    excel_files = [f for f in os.listdir(folder_path) if f.endswith(".xlsx")]
+    excel_files = [f for f in os.listdir(folder_path) if f.endswith(".xlsx") and f != "combined.xlsx"]
 
     # initialize an empty list to hold the DataFrames for each file
     df_list = []
+    excel_files = sorted(excel_files, key=lambda x: int(x[x.find("Route") + 5:].split(".")[0].rstrip(" ")))
+    print(excel_files)
 
     # iterate through each Excel file and concatenate all columns
     for file_name in excel_files:
@@ -116,23 +118,9 @@ def combine_files_new():
         if file_name == "combined.xlsx":
             continue
 
-        # check if the file contains the specified columns
-        df_cols = pd.read_excel(file_path, sheet_name="Parcel scan result", nrows=0).columns
-        while "Tracking Number" not in df_cols:
-            # try checking the next row in case the headers are not in the first row
-            df_cols = pd.read_excel(file_path, sheet_name="Parcel scan result", skiprows=1, nrows=0).columns
-            print(df_cols)
-            if "Tracking Number" not in df_cols:
-                # if there is no "Tracking Number" column, move to the next file
-                break
-
-        if "Tracking Number" not in df_cols:
-            # if there is no "Tracking Number" column in this file, move to the next file
-            continue
-
-        # extract the date and label from the file name
-        date_str, label = file_name.split(" ")[0:2]
-        date = pd.to_datetime(date_str, format="%m%d").strftime("%m-%d")
+        # # extract the date and label from the file name
+        # date_str, label = file_name.split(" ")[0:2]
+        # date = pd.to_datetime(date_str, format="%m%d").strftime("%m-%d")
 
         skip_rows = 0
         while True:
@@ -141,16 +129,16 @@ def combine_files_new():
                 break
             skip_rows += 1
 
-        # add the date and label columns to the DataFrame
-        df["Date"] = date
-        # df["Label"] = label
-
-        def replace_empty_with_no_sca(df):
-            columns_to_fill = [col for col in df.columns if "Scan Date" in col or "Scan Operator" in col]
-            df[columns_to_fill] = df[columns_to_fill].fillna("no scan")
-            return df
-
-        df = replace_empty_with_no_sca(df)
+        # # add the date and label columns to the DataFrame
+        # df["Date"] = date
+        # # df["Label"] = label
+        #
+        # def replace_empty_with_no_sca(df):
+        #     columns_to_fill = [col for col in df.columns if "Scan Date" in col or "Scan Operator" in col]
+        #     df[columns_to_fill] = df[columns_to_fill].fillna("no scan")
+        #     return df
+        #
+        # df = replace_empty_with_no_sca(df)
 
         # append the DataFrame to the list
         df_list.append(df)
@@ -161,7 +149,9 @@ def combine_files_new():
         return
 
     # concatenate all the DataFrames together
-    combined_df = pd.concat(df_list, ignore_index=True)
+    # combined_df = pd.concat(df_list, ignore_index=True)
+    combined_df = pd.concat(df_list, join='outer', sort=False)
+    # combined_df = combined_df.sort_values(by='Route Code')
 
     # write the combined DataFrame to a new Excel file
     combined_file_path = os.path.join(folder_path, "combined.xlsx")

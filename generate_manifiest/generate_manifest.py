@@ -47,7 +47,6 @@ def combine_files_new():
     dataframe_driver_info = pd.read_excel(os.path.join(driver_info_path, driver_info_file), sheet_name="Merged tables")
     dataframe_driver_info = dataframe_driver_info[["Route", "Tracking Number"]]
 
-
     # get a list of all Excel files in the folder
     excel_files = [f for f in os.listdir(folder_path) if f.endswith(".xlsx")]
 
@@ -112,7 +111,8 @@ def combine_files_new():
         new_dataframe_T86['Route'] = ''
         for index, row in new_dataframe_T86.iterrows():
             if row['Tracking Number'] in dataframe_driver_info['Tracking Number'].values:
-                new_dataframe_T86.at[index, 'Route'] = dataframe_driver_info.loc[dataframe_driver_info['Tracking Number'] == row['Tracking Number'], 'Route'].values[0]
+                new_dataframe_T86.at[index, 'Route'] = dataframe_driver_info.loc[
+                    dataframe_driver_info['Tracking Number'] == row['Tracking Number'], 'Route'].values[0]
 
         # rename the column name
         if "harmonization_code" in new_dataframe_T86.columns:
@@ -121,7 +121,8 @@ def combine_files_new():
         if 'recipient_zip5' in new_dataframe_T86.columns and 'recipient_zip4' in new_dataframe_T86.columns:
             new_dataframe_T86['recipient_zip4'] = new_dataframe_T86.apply(
                 lambda row: row['recipient_zip5'][-4:] if len(str(row['recipient_zip5'])) > 5 and
-                    row['recipient_zip4'] == "" else row['recipient_zip4'] if row['recipient_zip4'] != "" else "",
+                                                          row['recipient_zip4'] == "" else row['recipient_zip4'] if row[
+                                                                                                                        'recipient_zip4'] != "" else "",
                 axis=1)
             # Update the values in the 'zip code' column using a lambda function
             new_dataframe_T86['recipient_zip5'] = new_dataframe_T86['recipient_zip5'].apply(
@@ -143,10 +144,10 @@ def combine_files_new():
             "UD" if "UD" in x else "AH" if "AH" in x else "GE" if "GE" in x else "**wrong**",
             "SPXUD" if "UD" in x else "SPXAH" if "AH" in x else "SPXGE" if "GE" in x else "**wrong**"
         ))
-        
+
         # Create DataFrame for "DSP" and "DSP_backup" columns
         columns = pd.DataFrame(columns.tolist(), columns=["DSP", "DSP_backup"])
-        
+
         # Concatenate the new columns with the existing DataFrame
         new_dataframe_T86 = pd.concat([new_dataframe_T86, columns], axis=1)
         '''
@@ -204,7 +205,6 @@ def combine_files_new():
             # Set the font color to light blue for each cell in the column
             for cell in col_value:
                 cell.font = openpyxl.styles.Font(color='4796CB')
-
 
     workbook.save(os.path.join(folder_path, "combine_completed.xlsx"))
 
