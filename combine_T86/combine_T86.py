@@ -10,6 +10,9 @@ from tkinter import messagebox
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+import tkinter as tk
+from tkinter import ttk
+from PIL import ImageTk, Image
 
 pattern1 = r"\d{3}-\d{8}"
 pattern2 = r"\d{11}"
@@ -239,6 +242,20 @@ if __name__ == "__main__":
 
     # create a canvas widget
     canvas = tk.Canvas(root, width=500, height=500)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # Create a scrollbar widget
+    scrollbar = ttk.Scrollbar(root, orient=tk.VERTICAL, command=canvas.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Configure the canvas to use the scrollbar
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+    # Create a frame to hold the content
+    content_frame = tk.Frame(canvas)
+    canvas.create_window((0, 0), window=content_frame, anchor='nw')
+
     # create an image object from the icon.webp file
     # get the selected folder path
     image_folder_path = os.path.join(os.getcwd(), 'combine_icon.png')
@@ -277,6 +294,10 @@ if __name__ == "__main__":
                                padx=10, pady=5)
     combine_button.pack(pady=5, side=tk.BOTTOM)
     combine_button.place(relx=0.5, rely=0.8, anchor=tk.CENTER)
+
+    # Add the canvas and scrollbar to the root window
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     # start the UI loop
     root.mainloop()

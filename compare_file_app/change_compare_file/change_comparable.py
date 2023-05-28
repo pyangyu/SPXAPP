@@ -12,6 +12,33 @@ from tkinter import messagebox
 pattern1 = r"\d{3}-\d{8}"
 pattern2 = r"\d{11}"
 
+def show_scrollable_message(title, message):
+    # Create a new tkinter window
+    window = tk.Toplevel()
+    window.title(title)
+
+    # Create a Text widget to display the message
+    text = tk.Text(window, height=10, width=50)
+    text.pack(fill=tk.BOTH, expand=True)
+
+    # Create a Scrollbar and associate it with the Text widget
+    scrollbar = tk.Scrollbar(window, command=text.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    text.configure(yscrollcommand=scrollbar.set)
+
+    # Insert the message into the Text widget
+    text.insert(tk.END, message)
+
+    # Disable editing in the Text widget
+    text.configure(state=tk.DISABLED)
+
+    # Add an "OK" button to close the window
+    ok_button = tk.Button(window, text="OK", command=window.destroy)
+    ok_button.pack()
+
+    # Run the tkinter event loop
+    window.mainloop()
+
 
 def extract_file_name(file_name):
     file_name = file_name.replace(" ", "")
@@ -85,7 +112,7 @@ def audit_files_new():
             print(f"Skipping {excel_file} because the 'consignor_item_id' column does not exist.")
 
     # display a message box to indicate the operation is complete
-    messagebox.showinfo("T86 Filter Files", final_string)
+    show_scrollable_message("T86 Filter Files", final_string)
 
 def browse_folder():
     folder_path = filedialog.askdirectory()

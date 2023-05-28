@@ -9,6 +9,11 @@ import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 from tkinter import messagebox
 
+import sys
+
+# Redirect standard output to stderr
+sys.stdout = sys.stderr
+
 pattern1 = r"\d{3}-\d{8}"
 pattern2 = r"\d{11}"
 
@@ -50,46 +55,48 @@ def compare_files():
 
     for excel_file in excel_files_T86:
         # read the Excel file into a Pandas dataframe
-        df = pd.read_excel(os.path.join(folder_path_T86, excel_file))
-        # if "consignor_item_id" in df.columns:
-        #     df = df[df['consignor_item_id'].str.contains('SPX')]
-        # elif "服务商单号" in df.columns:
-        #     df = df[df['服务商单号'].str.contains('SPX')]
-        # else:
-        #     print("error")
         new_file_name = extract_file_name(excel_file)
+        # append the AWBs number to the list
         excel_files_T86_rename.append(new_file_name)
+        df = pd.read_excel(os.path.join(folder_path_T86, excel_file))
+
         if new_file_name == "":
             continue
 
-        # write the new dataframe to a new Excel file with the trimmed substring as the name,
-        # in the "complete_audit_file" subdirectory
-        new_file_name = new_file_name + "_T86.xlsx"
-        new_file_path = os.path.join(complete_files_T86, new_file_name)
+        if "consignor_item_id" in df.columns:
+            # filter the rows containing "SPX"
+            filtered_df = df[df['consignor_item_id'].str.contains('SPX')]
+            filtered_df = filtered_df.drop_duplicates(subset="consignor_item_id")
 
-        # create a new workbook and worksheet using openpyxl
-        workbook = openpyxl.Workbook()
-        worksheet = workbook.active
+            # write the new dataframe to a new Excel file with the trimmed substring as the name,
+            # in the "complete_audit_file" subdirectory
+            new_file_name = new_file_name + "_T86.xlsx"
+            new_file_path = os.path.join(complete_files_T86, new_file_name)
 
-        # write the dataframe to the worksheet
-        for row in dataframe_to_rows(df, index=False, header=True):
-            worksheet.append(row)
+            # create a new workbook and worksheet using openpyxl
+            workbook = openpyxl.Workbook()
+            worksheet = workbook.active
 
-        # save the workbook to the new Excel file
-        workbook.save(new_file_path)
+            # write the dataframe to the worksheet
+            for row in dataframe_to_rows(filtered_df, index=False, header=True):
+                worksheet.append(row)
+
+            # save the workbook to the new Excel file
+            workbook.save(new_file_path)
+
     final_string_presenting = ""
 
     for excel_file in excel_files_scanned:
         # read the Excel file into a Pandas dataframe
         df = pd.read_excel(os.path.join(folder_path_scanned, excel_file), header=None)
-        df = df.iloc[:, 0]
-        df.columns = ['scanned result']
+        df = df.iloc[:, 0].rename('scanned result')
+
         new_file_name = extract_file_name(excel_file)
         excel_files_scanned_rename.append(new_file_name)
         if new_file_name == "":
             continue
-        scanned_df = df.iloc[:, 0]
-        scanned_df = scanned_df.to_frame()
+        scanned_df = df.to_frame()
+
         # write the new dataframe to a new Excel file with the trimmed substring as the name,
         # in the "complete_audit_file" subdirectory
         new_file_name = new_file_name + "_scanned.xlsx"
@@ -114,7 +121,6 @@ def compare_files():
             df_scanned = pd.read_excel(os.path.join(complete_files_scanned, excel_file_scanned + "_scanned.xlsx"))
             if "箱号" in df_T86.columns.tolist():
                 df_T86 = df_T86.rename(columns={"箱号": "receptacle_id"})
-                print(df_T86.columns)
             consignor_item_id_scan = df_scanned.iloc[:, 0]
             consignor_item_id_scan = consignor_item_id_scan.drop_duplicates()
             consignor_item_id_scan = consignor_item_id_scan.tolist()
@@ -124,10 +130,13 @@ def compare_files():
             consignor_item_id_T86 = consignor_item_id_T86.tolist()
             consignor_item_id_T86 = list(set(consignor_item_id_T86))
             # the receptacle id label is broken, use the package inside instead
-            for consignor_item_id_scan_item in consignor_item_id_scan:
+            for i in range(len(consignor_item_id_scan)):
+                consignor_item_id_scan_item = consignor_item_id_scan[i]
                 if "SPX" in consignor_item_id_scan_item:
                     if df_T86['consignor_item_id'].str.contains(consignor_item_id_scan_item).any():
-                        continue
+                        matching_rows = df_T86[df_T86['consignor_item_id'].str.contains(consignor_item_id_scan_item)]
+                        first_match = matching_rows.iloc[0]['receptacle_id']
+                        consignor_item_id_scan[i] = first_match
             scanned_finished = 0
             for element in consignor_item_id_scan:
                 if element in consignor_item_id_T86:
@@ -194,7 +203,7 @@ if __name__ == "__main__":
     # -----------------------------------------------------------
     # add a label and entry for the folder path
     folder_path_var2 = tk.StringVar()
-    folder_path_label = tk.Label(root, text="Scan Folder Path (contains T86 files):")
+    folder_path_label = tk.Label(root, text="Scan Folder Path (contains scanned files):")
     folder_path_label.pack(side=tk.TOP)
     folder_path_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
     folder_path_entry = tk.Entry(root, textvariable=folder_path_var2, width=80)
